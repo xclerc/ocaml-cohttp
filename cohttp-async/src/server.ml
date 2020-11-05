@@ -51,7 +51,7 @@ let collect_errors writer ~f =
   choose [
     choice (Monitor.get_next_error monitor)
       (fun e -> Error (Exn.Reraised ("Cohttp_async.Server.collect_errors", e)));
-    choice (try_with ~name:"Cohttp_async.Server.collect_errors" f) Fn.id;
+    choice (try_with ~run:`Now ~rest:`Raise ~name:"Cohttp_async.Server.collect_errors" f) Fn.id;
   ]
 ;;
 
@@ -139,7 +139,7 @@ let error_body_default =
   "<html><body><h1>404 Not Found</h1></body></html>"
 
 let respond_with_file ?flush ?headers ?(error_body=error_body_default) filename =
-  Monitor.try_with ~run:`Now
+  Monitor.try_with ~run:`Now ~rest:`Raise
     (fun () ->
        Reader.open_file filename
        >>= fun rd ->
@@ -183,5 +183,3 @@ let create
   create_raw ?max_connections ?backlog
     ?buffer_age_limit ~on_handler_error ~mode where_to_listen
     handle_request
-
-

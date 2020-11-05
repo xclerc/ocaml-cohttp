@@ -33,7 +33,7 @@ let serve_file ~docroot ~uri =
 let serve ~info ~docroot ~index uri path =
   (* Get a canonical filename from the URL and docroot *)
   let file_name = Server.resolve_local_file ~docroot ~uri in
-  try_with (fun () ->
+  try_with ~run:`Now ~rest:`Raise (fun () ->
     Unix.stat file_name
     >>= fun stat ->
     Logs.debug (fun f -> f "%s" (Sexp.to_string_hum (Unix.Stats.sexp_of_t stat)));
@@ -53,7 +53,7 @@ let serve ~info ~docroot ~index uri path =
         Sys.ls_dir file_name
         >>= Deferred.List.map ~f:(fun f ->
           let file_name = file_name / f in
-          try_with (fun () ->
+          try_with ~run:`Now ~rest:`Raise (fun () ->
             Unix.stat file_name
             >>| fun stat -> (Some stat.Unix.Stats.kind, stat.Unix.Stats.size, f)
           ) >>| function Ok v -> v | Error _ -> (None, 0L, f))

@@ -73,7 +73,7 @@ let request ?interrupt ?ssl_config ?uri ?(body=`Empty) req =
     | None -> Request.uri req in
   Net.connect_uri ?interrupt ?ssl_config uri
   >>= fun (ic, oc) ->
-  try_with (fun () ->
+  try_with ~run:`Now ~rest:`Raise (fun () ->
       Request.write (fun writer ->
           Body_raw.write_body Request.write_body body writer) req oc
       >>= fun () ->
@@ -93,7 +93,7 @@ let callv ?interrupt ?ssl_config uri reqs =
   let reqs_c = ref 0 in
   let resp_c = ref 0 in
   Net.connect_uri ?interrupt ?ssl_config uri >>= fun (ic, oc) ->
-  try_with (fun () ->
+  try_with ~run:`Now ~rest:`Raise (fun () ->
       reqs
       |> Pipe.iter ~f:(fun (req, body) ->
           Int.incr reqs_c;
